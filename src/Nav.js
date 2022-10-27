@@ -9,10 +9,23 @@ function Nav(props) {
         <li>
           <NavLink to={'/'}>Home</NavLink>
         </li>
+        {isAuthenticated && (
           <li>
             <NavLink to={'/profile'}>Profile</NavLink>
           </li>
+        )}
+        <li>
+          <button
+            onClick={() => {
+              isAuthenticated ? logout() : login();
+            }}
+          >
+            {isAuthenticated ? 'Logout' : 'Login'}
+          </button>
+        </li>
       </ul>
     </nav>
   );
 }
+
+export default Nav;
