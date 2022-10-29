@@ -17,6 +17,11 @@ function Nav(props) {
         <li>
           <NavLink to={'/public'}>Public</NavLink>
         </li>
+        {isAuthenticated && (
+          <li>
+            <NavLink to={'/private'}>Private</NavLink>
+          </li>
+        )}
         <li>
           <button
             onClick={() => {

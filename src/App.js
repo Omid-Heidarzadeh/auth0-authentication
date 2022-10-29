@@ -8,6 +8,8 @@ import Profile from './Profile';
 import PageNotFound from './PageNotFound';
 import NavigateTo from './NavigateTo';
 import Public from './Public';
+import RedirectToLogin from './RedirectToLogin';
+import Private from './Private';
 
 function App(props) {
   const navigate = useNavigate();
@@ -33,6 +35,18 @@ function App(props) {
                 }
               />
             }
+            {
+              <Route
+                path="private"
+                element={
+                  auth.isAuthenticated ? (
+                    <Private auth={auth} />
+                  ) : (
+                    <RedirectToLogin />
+                  )
+                }
+              />
+            }
             <Route path="public" element={<Public />} />
             <Route path="*" element={<PageNotFound />} />
           </Routes>
@@ -43,4 +57,3 @@ function App(props) {
 }
 
 export default App;
-
