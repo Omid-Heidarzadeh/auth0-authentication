@@ -23,5 +23,11 @@ app.get('/api/public', (req, res) => {
   });
 });
 
+app.get('/api/private', jwtCheck, (req, res) => {
+  res.json({
+    message: 'Response from Private API!',
+  });
+});
+
 app.listen(3001);
 console.log('Listening on: ', process.env.REACT_APP_AUTH0_API_URL);
