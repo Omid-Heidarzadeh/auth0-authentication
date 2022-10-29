@@ -1,13 +1,13 @@
 import auth0 from 'auth0-js';
 
 export default class Auth {
-  constructor(navigate) {
-    this.navigate = navigate;
+  constructor() {
     this.userProfile = null;
     this.auth0 = new auth0.WebAuth({
       domain: process.env.REACT_APP_AUTH0_DOMAIN,
       clientID: process.env.REACT_APP_CLIENT_ID,
       redirectUri: process.env.REACT_APP_AUTH0_CALLBACK_URL,
+      audience: `${process.env.REACT_APP_AUTH0_AUDIENCE}`,
       responseType: 'token id_token',
       scope: 'openid profile email',
     });
@@ -26,10 +26,10 @@ export default class Auth {
     this.auth0.parseHash((err, authInfo) => {
       if (authInfo && authInfo.accessToken && authInfo.idToken) {
         this.setSession(authInfo);
-        this.navigate('/');
+        window.location.replace('/');
       } else if (err) {
         console.log(err);
-        this.navigate('/');
+        window.location.replace('/');
         setTimeout(
           () =>
             alert(
