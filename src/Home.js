@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { AuthContext } from './context/AuthContext';
 
 function Home(props) {
-  const { login, isAuthenticated } = props.auth;
+  const auth = useContext(AuthContext);
+  const { login, isAuthenticated } = auth;
 
   return (
     <div>

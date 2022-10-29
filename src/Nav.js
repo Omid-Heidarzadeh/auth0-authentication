@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
+import { AuthContext } from './context/AuthContext';
 
 function Nav(props) {
-  const { isAuthenticated, login, logout } = props.auth;
+  const auth = useContext(AuthContext);
+  const { isAuthenticated, login, logout } = auth;
   return (
     <nav>
       <ul>

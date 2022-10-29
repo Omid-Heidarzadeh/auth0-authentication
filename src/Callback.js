@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { AuthContext } from './context/AuthContext';
 
 function Callback(props) {
+  const auth = useContext(AuthContext);
   const location = useLocation();
   const isAuthHandled = useRef(false);
 
@@ -9,12 +11,12 @@ function Callback(props) {
     if (isAuthHandled.current) return;
 
     if (/access_token|id_token|error/.test(location.hash)) {
-      props.auth.handleAuthentication();
+      auth.handleAuthentication();
       isAuthHandled.current = true;
     } else {
       throw new Error('Invalid callback URL.');
     }
-  }, [location.hash, props.auth]);
+  }, [location.hash, auth]);
 
   return <div>Loading...</div>;
 }

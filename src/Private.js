@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
+import { AuthContext } from './context/AuthContext';
 
 function Private(props) {
-  const { auth } = props;
+  const auth = useContext(AuthContext);
   const [state, setState] = useState({ message: '' });
   const fetched = useRef(false);
 

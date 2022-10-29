@@ -1,37 +1,30 @@
-import React, { useState } from 'react';
-import { useNavigate, Routes, Route } from 'react-router-dom';
-import Auth from './Auth/Auth';
+import React, { useContext } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import Callback from './Callback';
 import Nav from './Nav';
 import Home from './Home';
 import Profile from './Profile';
 import PageNotFound from './PageNotFound';
-import NavigateTo from './NavigateTo';
 import Public from './Public';
 import RedirectToLogin from './RedirectToLogin';
 import Private from './Private';
+import { AuthContext } from './context/AuthContext';
 
 function App(props) {
-  const navigate = useNavigate();
-  const [auth] = useState(new Auth(navigate));
-
+  const auth = useContext(AuthContext);
   return (
     <div className="App">
-      <Nav auth={auth} />
+      <Nav />
       <div className="body">
         {
           <Routes>
-            <Route path="/" element={<Home auth={auth} />} />
-            <Route path="callback" element={<Callback auth={auth} />} />
+            <Route path="/" element={<Home />} />
+            <Route path="callback" element={<Callback />} />
             {
               <Route
                 path="profile"
                 element={
-                  auth.isAuthenticated ? (
-                    <Profile auth={auth} />
-                  ) : (
-                    <NavigateTo to="/" />
-                  )
+                  auth.isAuthenticated ? <Profile /> : <RedirectToLogin />
                 }
               />
             }
@@ -39,11 +32,7 @@ function App(props) {
               <Route
                 path="private"
                 element={
-                  auth.isAuthenticated ? (
-                    <Private auth={auth} />
-                  ) : (
-                    <RedirectToLogin />
-                  )
+                  auth.isAuthenticated ? <Private /> : <RedirectToLogin />
                 }
               />
             }

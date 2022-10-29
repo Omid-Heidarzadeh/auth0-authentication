@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import ProfileInfo from './ProfileInfo';
+import { AuthContext } from './context/AuthContext';
 
 function Profile(props) {
+  const auth = useContext(AuthContext);
   const [{ profile, error }, setState] = useState({
     profile: null,
     error: null,
@@ -13,7 +15,7 @@ function Profile(props) {
   }, []);
 
   function getUserProfile() {
-    props.auth.getProfile((error, profile) => {
+    auth.getProfile((error, profile) => {
       setState({ profile, error });
     });
   }
