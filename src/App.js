@@ -7,6 +7,7 @@ import Home from './Home';
 import Profile from './Profile';
 import PageNotFound from './PageNotFound';
 import NavigateTo from './NavigateTo';
+import Public from './Public';
 
 function App(props) {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ function App(props) {
                 }
               />
             }
+            <Route path="public" element={<Public />} />
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         }

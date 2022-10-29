@@ -15,6 +15,9 @@ function Nav(props) {
           </li>
         )}
         <li>
+          <NavLink to={'/public'}>Public</NavLink>
+        </li>
+        <li>
           <button
             onClick={() => {
               isAuthenticated ? logout() : login();
