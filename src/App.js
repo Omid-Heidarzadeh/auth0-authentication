@@ -1,23 +1,56 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useContext } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Callback from './Callback';
+import Nav from './Nav';
+import Home from './Home';
+import Profile from './Profile';
+import Public from './Public';
+import Private from './Private';
+import Courses from './Courses';
+import PageNotFound from './PageNotFound';
+import RedirectToLogin from './RedirectToLogin';
+import { AuthContext } from './context/AuthContext';
 
-function App() {
+function App(props) {
+  const auth = useContext(AuthContext);
+  const { isAuthenticated, userHasScopes } = auth;
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Nav />
+      <div className="body">
+        {
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="callback" element={<Callback />} />
+            {
+              <Route
+                path="profile"
+                element={isAuthenticated ? <Profile /> : <RedirectToLogin />}
+              />
+            }
+            {
+              <Route
+                path="private"
+                element={isAuthenticated ? <Private /> : <RedirectToLogin />}
+              />
+            }
+            {
+              <Route
+                path="courses"
+                element={
+                  isAuthenticated && userHasScopes(['read:courses']) ? (
+                    <Courses />
+                  ) : (
+                    <RedirectToLogin />
+                  )
+                }
+              />
+            }
+            <Route path="public" element={<Public />} />
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+        }
+      </div>
     </div>
   );
 }
