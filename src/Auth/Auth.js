@@ -64,21 +64,19 @@ export default class Auth {
     });
   };
 
-  getAccessToken = () => {
+  getAccessToken() {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
       throw new Error('No access token found');
     }
     return accessToken;
-  };
+  }
 
   getProfile = (callback) => {
     if (this.userProfile) return callback(null, this.userProfile);
     this.auth0.client.userInfo(this.getAccessToken(), (err, profile) => {
-      if (profile) {
-        this.userProfile = profile;
-        callback(null, profile);
-      } else callback(err, null);
+      if (profile) this.userProfile = profile;
+      callback(err, profile);
     });
   };
 
