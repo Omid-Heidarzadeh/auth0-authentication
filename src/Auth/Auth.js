@@ -3,13 +3,14 @@ import auth0 from 'auth0-js';
 export default class Auth {
   constructor() {
     this.userProfile = null;
+    this.requestedScopes = 'openid profile email read:courses';
     this.auth0 = new auth0.WebAuth({
       domain: process.env.REACT_APP_AUTH0_DOMAIN,
       clientID: process.env.REACT_APP_CLIENT_ID,
       redirectUri: process.env.REACT_APP_AUTH0_CALLBACK_URL,
       audience: `${process.env.REACT_APP_AUTH0_AUDIENCE}`,
       responseType: 'token id_token',
-      scope: 'openid profile email',
+      scope: this.requestedScopes,
     });
   }
 
@@ -43,16 +44,19 @@ export default class Auth {
 
   setSession = (authInfo) => {
     const expiresAt = authInfo.expiresIn * 1000 + Date.now();
+    const scope = authInfo.scope;
 
     localStorage.setItem('accessToken', authInfo.accessToken);
     localStorage.setItem('idToken', authInfo.idToken);
     localStorage.setItem('expiresAt', expiresAt.toString());
+    localStorage.setItem('scope', JSON.stringify(scope));
   };
 
   logout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('idToken');
     localStorage.removeItem('expiresAt');
+    localStorage.removeItem('scope');
     this.userProfile = null;
     this.auth0.logout({
       clientID: process.env.REACT_APP_CLIENT_ID,
@@ -60,21 +64,24 @@ export default class Auth {
     });
   };
 
-  getAccessToken = () => {
+  getAccessToken() {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
       throw new Error('No access token found');
     }
     return accessToken;
-  };
+  }
 
   getProfile = (callback) => {
     if (this.userProfile) return callback(null, this.userProfile);
     this.auth0.client.userInfo(this.getAccessToken(), (err, profile) => {
-      if (profile) {
-        this.userProfile = profile;
-        callback(null, profile);
-      } else callback(err, null);
+      if (profile) this.userProfile = profile;
+      callback(err, profile);
     });
   };
+
+  userHasScopes(scopes) {
+    const grantedScopes = JSON.parse(localStorage.getItem('scope')).split(' ');
+    return scopes.every((scope) => grantedScopes.includes(scope));
+  }
 }

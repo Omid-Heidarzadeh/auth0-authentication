@@ -4,7 +4,7 @@ import { AuthContext } from './context/AuthContext';
 
 function Nav(props) {
   const auth = useContext(AuthContext);
-  const { isAuthenticated, login, logout } = auth;
+  const { isAuthenticated, login, logout, userHasScopes } = auth;
   return (
     <nav>
       <ul>
@@ -22,6 +22,11 @@ function Nav(props) {
         {isAuthenticated && (
           <li>
             <NavLink to={'/private'}>Private</NavLink>
+          </li>
+        )}
+        {isAuthenticated && userHasScopes(['read:courses']) && (
+          <li>
+            <NavLink to={'/courses'}>Courses</NavLink>
           </li>
         )}
         <li>
