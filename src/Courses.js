@@ -22,6 +22,19 @@ function Courses() {
       .then(({ courses }) => setCourses(courses))
       .catch((error) => setError(error.message));
 
+    fetch('/api/admin', {
+      headers: {
+        Authorization: `Bearer ${auth.getAccessToken()}`,
+      },
+      signal: abortController.signal,
+    })
+      .then((response) => {
+        if (response.ok) return response.json();
+        throw new Error('Network response was not OK.');
+      })
+      .then((response) => console.log(response))
+      .catch((error) => console.log(error.message));
+
     return () => {
       abortController.abort();
     };
