@@ -16,6 +16,17 @@ const jwtCheck = jwt.expressjwt({
   algorithms: ['RS256'],
 });
 
+function checkRole(role) {
+  return function (req, res, next) {
+    const assignedRoles = req.auth['http://localhost:3000/roles'];
+    if (Array.isArray(assignedRoles) && assignedRoles.includes(role)) {
+      return next();
+    } else {
+      return res.status(403).send('Insufficient role');
+    }
+  };
+}
+
 const app = express();
 
 app.get('/api/public', (req, res) => {
@@ -43,5 +54,10 @@ app.get(
     });
   }
 );
+
+app.get('/api/admin', jwtCheck, checkRole('admin'), (req, res) => {
+  res.send('Response from Admin API!');
+});
+
 app.listen(3001);
 console.log('Listening on: ', process.env.REACT_APP_AUTH0_API_URL);
