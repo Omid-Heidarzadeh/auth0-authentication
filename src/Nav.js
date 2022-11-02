@@ -5,6 +5,7 @@ import { AuthContext } from './context/AuthContext';
 function Nav(props) {
   const auth = useContext(AuthContext);
   const { isAuthenticated, login, logout, userHasScopes } = auth;
+
   return (
     <nav>
       <ul>
@@ -32,7 +33,7 @@ function Nav(props) {
         <li>
           <button
             onClick={() => {
-              isAuthenticated ? logout() : login();
+              isAuthenticated ? logout() : login(window.location.pathname);
             }}
           >
             {isAuthenticated ? 'Logout' : 'Login'}
