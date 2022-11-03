@@ -1,5 +1,11 @@
 import auth0 from 'auth0-js';
 
+const _lastPage = 'lastPage';
+let _accessToken = '';
+let _idToken = '';
+let _expiresAt = '';
+let _scope = '';
+
 export default class Auth {
   constructor(navigate) {
     this.userProfile = null;
@@ -23,8 +29,7 @@ export default class Auth {
   };
 
   get isAuthenticated() {
-    const expiresAt = localStorage.getItem('expiresAt');
-    return expiresAt && expiresAt > Date.now();
+    return _expiresAt > Date.now();
   }
 
   handleAuthentication = () => {
@@ -50,20 +55,17 @@ export default class Auth {
   };
 
   setSession = (authInfo) => {
-    const expiresAt = authInfo.expiresIn * 1000 + Date.now();
-    const scope = authInfo.scope;
-
-    localStorage.setItem('accessToken', authInfo.accessToken);
-    localStorage.setItem('idToken', authInfo.idToken);
-    localStorage.setItem('expiresAt', expiresAt.toString());
-    localStorage.setItem('scope', JSON.stringify(scope));
+    _expiresAt = authInfo.expiresIn * 1000 + Date.now();
+    _scope = authInfo.scope;
+    _accessToken = authInfo.accessToken;
+    _idToken = authInfo.idToken;
   };
 
   logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('idToken');
-    localStorage.removeItem('expiresAt');
-    localStorage.removeItem('scope');
+    _accessToken = '';
+    _idToken = '';
+    _expiresAt = '';
+    _scope = '';
     this.userProfile = null;
     this.auth0.logout({
       clientID: process.env.REACT_APP_CLIENT_ID,
@@ -72,11 +74,10 @@ export default class Auth {
   };
 
   getAccessToken() {
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) {
+    if (!_accessToken) {
       throw new Error('No access token found');
     }
-    return accessToken;
+    return _accessToken;
   }
 
   getProfile = (callback) => {
@@ -87,8 +88,8 @@ export default class Auth {
     });
   };
 
-  userHasScopes(scopes) {
-    const grantedScopes = JSON.parse(localStorage.getItem('scope')).split(' ');
-    return scopes.every((scope) => grantedScopes.includes(scope));
+  userHasScopes(claimedScopes) {
+    const grantedScopes = _scope.split(' ');
+    return claimedScopes.every((scope) => grantedScopes.includes(scope));
   }
 }
