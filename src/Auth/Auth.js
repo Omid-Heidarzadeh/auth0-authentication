@@ -1,8 +1,9 @@
 import auth0 from 'auth0-js';
 
 export default class Auth {
-  constructor() {
+  constructor(navigate) {
     this.userProfile = null;
+    this.navigate = navigate;
     this.requestedScopes = 'openid profile email read:courses';
     this.auth0 = new auth0.WebAuth({
       domain: process.env.REACT_APP_AUTH0_DOMAIN,
@@ -32,10 +33,10 @@ export default class Auth {
     this.auth0.parseHash((err, authInfo) => {
       if (authInfo && authInfo.accessToken && authInfo.idToken) {
         this.setSession(authInfo);
-        window.location.replace('/');
+        this.navigate(lastPageAddress);
       } else if (err) {
         console.log(err);
-        window.location.replace('/');
+        this.navigate(lastPageAddress);
         setTimeout(
           () =>
             alert(
