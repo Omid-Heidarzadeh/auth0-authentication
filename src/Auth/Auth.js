@@ -14,7 +14,10 @@ export default class Auth {
     });
   }
 
-  login = () => {
+  login = (lastPage = '') => {
+    if (typeof lastPage === 'string' && lastPage.length > 0)
+      localStorage.setItem(_lastPage, JSON.stringify(lastPage));
+
     this.auth0.authorize();
   };
 
@@ -24,6 +27,8 @@ export default class Auth {
   }
 
   handleAuthentication = () => {
+    const lastPageAddress = JSON.parse(localStorage.getItem(_lastPage)) || '/';
+
     this.auth0.parseHash((err, authInfo) => {
       if (authInfo && authInfo.accessToken && authInfo.idToken) {
         this.setSession(authInfo);
@@ -39,6 +44,7 @@ export default class Auth {
           500
         );
       }
+      localStorage.removeItem(_lastPage);
     });
   };
 
