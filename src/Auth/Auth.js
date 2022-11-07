@@ -2,14 +2,14 @@ import auth0 from 'auth0-js';
 
 const _lastPage = 'lastPage';
 let _accessToken = '';
+// eslint-disable-next-line
 let _idToken = '';
 let _expiresAt = '';
 let _scope = '';
 
 export default class Auth {
-  constructor(navigate) {
+  constructor() {
     this.userProfile = null;
-    this.navigate = navigate;
     this.requestedScopes = 'openid profile email read:courses';
     this.auth0 = new auth0.WebAuth({
       domain: process.env.REACT_APP_AUTH0_DOMAIN,
@@ -19,6 +19,10 @@ export default class Auth {
       responseType: 'token id_token',
       scope: this.requestedScopes,
     });
+  }
+
+  setNavigate(navigate) {
+    this.navigate = navigate;
   }
 
   login = (lastPage = '') => {
