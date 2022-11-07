@@ -29,7 +29,7 @@ function Courses() {
       signal: abortController.signal,
     })
       .then((response) => {
-        if (response.ok) return response.json();
+        if (response.ok) return response.text();
         throw new Error('Network response was not OK.');
       })
       .then((response) => console.log(response))
@@ -38,7 +38,7 @@ function Courses() {
     return () => {
       abortController.abort();
     };
-  }, []);
+  }, [auth]);
 
   return (
     <div>

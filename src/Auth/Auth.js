@@ -1,5 +1,12 @@
 import auth0 from 'auth0-js';
 
+const _lastPage = 'lastPage';
+let _accessToken = '';
+// eslint-disable-next-line
+let _idToken = '';
+let _expiresAt = '';
+let _scope = '';
+
 export default class Auth {
   constructor() {
     this.userProfile = null;
@@ -14,23 +21,31 @@ export default class Auth {
     });
   }
 
-  login = () => {
+  setNavigate(navigate) {
+    this.navigate = navigate;
+  }
+
+  login = (lastPage = '') => {
+    if (typeof lastPage === 'string' && lastPage.length > 0)
+      localStorage.setItem(_lastPage, JSON.stringify(lastPage));
+
     this.auth0.authorize();
   };
 
   get isAuthenticated() {
-    const expiresAt = localStorage.getItem('expiresAt');
-    return expiresAt && expiresAt > Date.now();
+    return _expiresAt > Date.now();
   }
 
   handleAuthentication = () => {
+    const lastPageAddress = JSON.parse(localStorage.getItem(_lastPage)) || '/';
+
     this.auth0.parseHash((err, authInfo) => {
       if (authInfo && authInfo.accessToken && authInfo.idToken) {
         this.setSession(authInfo);
-        window.location.replace('/');
+        this.navigate(lastPageAddress);
       } else if (err) {
         console.log(err);
-        window.location.replace('/');
+        this.navigate(lastPageAddress);
         setTimeout(
           () =>
             alert(
@@ -39,24 +54,22 @@ export default class Auth {
           500
         );
       }
+      localStorage.removeItem(_lastPage);
     });
   };
 
   setSession = (authInfo) => {
-    const expiresAt = authInfo.expiresIn * 1000 + Date.now();
-    const scope = authInfo.scope;
-
-    localStorage.setItem('accessToken', authInfo.accessToken);
-    localStorage.setItem('idToken', authInfo.idToken);
-    localStorage.setItem('expiresAt', expiresAt.toString());
-    localStorage.setItem('scope', JSON.stringify(scope));
+    _expiresAt = authInfo.expiresIn * 1000 + Date.now();
+    _scope = authInfo.scope;
+    _accessToken = authInfo.accessToken;
+    _idToken = authInfo.idToken;
   };
 
   logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('idToken');
-    localStorage.removeItem('expiresAt');
-    localStorage.removeItem('scope');
+    _accessToken = '';
+    _idToken = '';
+    _expiresAt = '';
+    _scope = '';
     this.userProfile = null;
     this.auth0.logout({
       clientID: process.env.REACT_APP_CLIENT_ID,
@@ -65,11 +78,10 @@ export default class Auth {
   };
 
   getAccessToken() {
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) {
+    if (!_accessToken) {
       throw new Error('No access token found');
     }
-    return accessToken;
+    return _accessToken;
   }
 
   getProfile = (callback) => {
@@ -80,8 +92,17 @@ export default class Auth {
     });
   };
 
-  userHasScopes(scopes) {
-    const grantedScopes = JSON.parse(localStorage.getItem('scope')).split(' ');
-    return scopes.every((scope) => grantedScopes.includes(scope));
+  userHasScopes(claimedScopes) {
+    const grantedScopes = _scope.split(' ');
+    return claimedScopes.every((scope) => grantedScopes.includes(scope));
   }
+
+  renewToken = (callback) => {
+    this.auth0.checkSession({}, (err, response) => {
+      if (err) {
+        console.log('Error renewToken', err.error, err.description);
+      } else this.setSession(response);
+      if (typeof callback === 'function') callback(err, response);
+    });
+  };
 }
