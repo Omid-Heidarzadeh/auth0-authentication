@@ -1,9 +1,13 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import Nav from './Nav';
-import { AuthContextProvider } from './context/AuthContext';
+import { AuthContextProvider, AuthContext } from './context/AuthContext';
 
 function App(props) {
+  const auth = useContext(AuthContext);
+  const navigate = useNavigate();
+  auth.setNavigate(navigate);
+
   return (
     <AuthContextProvider>
       <div className="App">
