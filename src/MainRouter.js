@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
   createBrowserRouter,
   RouterProvider,
@@ -7,7 +7,7 @@ import {
 import AccessDenied from './AccessDenied';
 import App from './App';
 import Callback from './Callback';
-import { auth } from './context/AuthContext';
+import { AuthContext } from './context/AuthContext';
 import Courses from './Courses';
 import Home from './Home';
 import PageNotFound from './PageNotFound';
@@ -17,6 +17,8 @@ import Public from './Public';
 import Login from './Login';
 
 function MainRouter() {
+  const auth = useContext(AuthContext);
+
   function secureLoader(scopes) {
     scopes = scopes || [];
 
