@@ -63,6 +63,7 @@ export default class Auth {
     _scope = authInfo.scope;
     _accessToken = authInfo.accessToken;
     _idToken = authInfo.idToken;
+    this.scheduleTokenRenewal();
   };
 
   logout = () => {
@@ -104,5 +105,13 @@ export default class Auth {
       } else this.setSession(response);
       if (typeof callback === 'function') callback(err, response);
     });
+  };
+
+  scheduleTokenRenewal = () => {
+    const remainingTime = _expiresAt - Date.now();
+
+    setTimeout(() => {
+      this.renewToken();
+    }, remainingTime);
   };
 }
