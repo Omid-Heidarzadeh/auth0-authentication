@@ -96,4 +96,13 @@ export default class Auth {
     const grantedScopes = _scope.split(' ');
     return claimedScopes.every((scope) => grantedScopes.includes(scope));
   }
+
+  renewToken = (callback) => {
+    this.auth0.checkSession({}, (err, response) => {
+      if (err) {
+        console.log('Error renewToken', err.error, err.description);
+      } else this.setSession(response);
+      if (typeof callback === 'function') callback(err, response);
+    });
+  };
 }
