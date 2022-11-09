@@ -1,70 +1,113 @@
-# Getting Started with Create React App
+# Getting Started
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+First you need to signup for [Auth0](https://auth0.com/).
 
-## Available Scripts
+Create new `tenant` then from dashboard select `Create Application` and select `single page application` as application type.
+Under `settings` tab, find `Domain` address and `Client ID`.
 
-In the project directory, you can run:
+Add `.env` file with following environment variables to main directory of the project. Be sure to replace `AUTH0-DOMAIN-ADDRESS` and `AUTH0-CLIENT-ID` with information from your auth0 application.
 
-### `npm start`
+| Variable                     | Value                             |
+| ---------------------------- | --------------------------------- |
+| REACT_APP_AUTH0_DOMAIN       | AUTH0-DOMAIN-ADDRESS              |
+| REACT_APP_CLIENT_ID          | AUTH0-CLIENT-ID                   |
+| REACT_APP_AUTH0_CALLBACK_URL | http://localhost:3000/callback    |
+| REACT_APP_AUTH0_AUDIENCE     | http://localhost:3001/api/private |
+| REACT_APP_AUTH0_API_URL      | http://localhost:3001/api         |
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+On `settings` tab under `Application URIs` section add the following values and save the changes:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+| Option                | Value                          |
+| --------------------- | ------------------------------ |
+| Allowed callback URLs | http://localhost:3000/callback |
+| Allowed logout URLs   | http://localhost:3000          |
+| Allowed web origins   | http://localhost:3000          |
 
-### `npm test`
+From main navigation menu open `API` tab and create a new API with desired name and `http://localhost:3001/api/private` as `identifier`.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Select newly created API then under `settings` tab make sure to enable `RBCA` and `Add permissions in the Access token`. Save the changes. Open `permissions` tab and add `read:courses` scope to permissions.
 
-### `npm run build`
+Under `User Management` select `Roles` and add `admin` role with `read:courses` permission.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Under `Auth Pipeline` select `Rules` and add following rules with their correspondig script.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Set roles to a user
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### script
 
-### `npm run eject`
+```javascript
+function setRolesToUser(user, context, callback) {
+  // Roles should only be set to verified users.
+  if (!user.email || !user.email_verified) {
+    return callback(null, user, context);
+  }
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+  user.app_metadata = user.app_metadata || {};
+  // You can add a Role based on what you want
+  // In this case I check domain
+  const addRolesToUser = function (user) {
+    // for simplicity set users with gmail account
+    // as admin
+    const endsWith = '@gmail.com';
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    if (
+      user.email &&
+      user.email.substring(
+        user.email.length - endsWith.length,
+        user.email.length
+      ) === endsWith
+    ) {
+      return ['admin'];
+    }
+    return ['user'];
+  };
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+  const roles = addRolesToUser(user);
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+  user.app_metadata.roles = roles;
+  auth0.users
+    .updateAppMetadata(user.user_id, user.app_metadata)
+    .then(function () {
+      context.idToken['http://localhost:3000/roles'] = user.app_metadata.roles;
+      callback(null, user, context);
+    })
+    .catch(function (err) {
+      callback(err);
+    });
+}
+```
 
-## Learn More
+## Add roles to Access Token
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Script
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```javascript
+function (user, context, callback) {
+  if (user.app_metadata && user.app_metadata.roles)
+    context.accessToken['http://localhost:3000/roles'] = user.app_metadata.roles;
+  return callback(null, user, context);
+}
+```
 
-### Code Splitting
+Make sure to sort rules as above. The first rule assign roles (`user` or `admin`) to users. The second rule assures that assigned roles are included in the returned `Access Token` JWT.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Install dependencies
 
-### Analyzing the Bundle Size
+run `npm install` to install app dependencies.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Run App
 
-### Making a Progressive Web App
+Now you should be able to run the app using `npm start`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## About app and its usage
 
-### Advanced Configuration
+This app is a simple implementation of Auth0 authentication.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+On first page-load the app checkes if there is an active session and tries to renew tokes on memory for current user which is called `Silent Authentication`. If it succeed, navbar and main page content update accordingly. Otherwise, user has only access to the so called `/public` route.
 
-### Deployment
+Each new user needs to sign up to be able to access `/private` route.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Also there is a `/courses` route which is only accessible to users with `admin` role. To assign `admin` role to a user you need to do so using `users` tab under `User management` submenu of Auth0 dashboard. Make sure that the selected user has a verified email address.
 
-### `npm run build` fails to minify
+After doing so, user needs to logout and re-login to be able to access `/courses` route.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
